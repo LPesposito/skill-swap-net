@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}SkillSwap{% endblock %}</title>
+    <style>
+      body { font-family: Arial, Helvetica, sans-serif; max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
+      header { border-bottom: 1px solid #ddd; padding-bottom: 0.5rem; margin-bottom: 1rem }
+      nav a { margin-right: 1rem }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1><a href="/">SkillSwap</a></h1>
+      <nav>
+        <a href="/">Home</a>
+        <a href="/users/skills/">Minhas Habilidades</a>
+        <a href="/admin/">Admin</a>
+        {% if request.user.is_authenticated %}
+          <span>Olá, {{ request.user.username }}</span>
+          <a href="/accounts/logout/">Sair</a>
+        {% else %}
+          <a href="/accounts/login/">Entrar</a>
+        {% endif %}
+      </nav>
+    </header>
+
+    <main>
+      {% block content %}{% endblock %}
+    </main>
+
+    <footer style="border-top:1px solid #eee; margin-top:2rem; padding-top:1rem; font-size:0.9rem; color:#666">
+      &copy; SkillSwap - Projeto Integrador
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>My Skills</h1>
+  <a href="{% url 'users:skill_add' %}">Add new skill</a>
+  <ul>
+    {% for skill in skills %}
+      <li>
+        {{ skill.name }} - <a href="{% url 'users:skill_edit' skill.pk %}">edit</a> |
+        <a href="{% url 'users:skill_delete' skill.pk %}">delete</a>
+      </li>
+    {% empty %}
+      <li>No skills added yet.</li>
+    {% endfor %}
+  </ul>
+{% endblock %}
