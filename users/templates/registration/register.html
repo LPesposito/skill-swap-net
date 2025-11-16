@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Criar conta • SkillSwap{% endblock %}
+{% block header_title %}Criar conta{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-center">
+  <div class="card shadow-sm border-0" style="max-width: 520px; width: 100%;">
+    <div class="card-body p-4">
+      <h5 class="card-title mb-3 text-center">Junte-se ao SkillSwap</h5>
+      <form method="post" action="">
+        {% csrf_token %}
+        {% if form.errors %}
+          <div class="alert alert-danger">Verifique os campos e tente novamente.</div>
+        {% endif %}
+
+        <div class="mb-3">
+          <label class="form-label" for="id_username">Usuário</label>
+          <input type="text" name="username" class="form-control{% if form.username.errors %} is-invalid{% endif %}" id="id_username" value="{{ form.username.value|default:'' }}" required>
+          {% if form.username.errors %}
+            <div class="invalid-feedback d-block">{{ form.username.errors|striptags }}</div>
+          {% endif %}
+        </div>
+        <div class="mb-3">
+          <label class="form-label" for="id_password1">Senha</label>
+          <input type="password" name="password1" class="form-control{% if form.password1.errors %} is-invalid{% endif %}" id="id_password1" required>
+          <div class="form-text">Mínimo 8 caracteres; evite sequências óbvias.</div>
+          {% if form.password1.errors %}
+            <div class="invalid-feedback d-block">{{ form.password1.errors|striptags }}</div>
+          {% endif %}
+        </div>
+        <div class="mb-3">
+          <label class="form-label" for="id_password2">Confirmar senha</label>
+          <input type="password" name="password2" class="form-control{% if form.password2.errors %} is-invalid{% endif %}" id="id_password2" required>
+          {% if form.password2.errors %}
+            <div class="invalid-feedback d-block">{{ form.password2.errors|striptags }}</div>
+          {% endif %}
+        </div>
+        <button class="btn btn-primary w-100" type="submit">Criar conta</button>
+      </form>
+      <hr>
+      <div class="text-center">
+        <span class="text-muted small">Já possui conta?</span>
+        <a href="{% url 'login' %}" class="ms-1">Entrar</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

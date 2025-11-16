@@ -1,0 +1,177 @@
+<div class="row g-4">
+  {% for service in items %}
+    <div class="col-12 col-xl-10">
+      <div class="card shadow-sm border-0">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-start gap-3">
+            <!-- Avatar do provedor -->
+            <div class="flex-shrink-0">
+              {% if service.provider.profile.photo %}
+                <img src="{{ service.provider.profile.photo.url }}" alt="Foto do provedor"
+                     class="rounded-circle" style="width:36px;height:36px;object-fit:cover;">
+              {% else %}
+                <div class="rounded-circle bg-secondary-subtle text-secondary d-inline-flex align-items-center justify-content-center fw-bold"
+                     style="width:36px;height:36px;">
+                  {% if service.provider.profile.display_name %}
+                    {{ service.provider.profile.display_name|first|upper }}
+                  {% else %}
+                    {{ service.provider.username|first|upper }}
+                  {% endif %}
+                </div>
+              {% endif %}
+            </div>
+
+            <div class="flex-grow-1">
+              <h5 class="card-title mb-1">{{ service.offered_skill.name }}</h5>
+              <div class="d-flex align-items-center gap-3 flex-wrap">
+                <div class="d-flex align-items-center gap-2">
+                  {% with avg=service.avg_rating|default:service.provider.get_average_rating %}
+                    <div class="rating d-inline-flex align-items-center">
+                      {% with whole=avg|floatformat:"0" %}
+                        {% for _ in "12345"|make_list %}
+                          {% if forloop.counter <= whole|add:0 %}
+                            <svg class="star" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10 15.27L16.18 19l-1.64-7.03L20 7.24l-7.19-.61L10 0 7.19 6.63 0 7.24l5.46 4.73L3.82 19z"/></svg>
+                          {% else %}
+                            <svg class="star empty" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10 15.27L16.18 19l-1.64-7.03L20 7.24l-7.19-.61L10 0 7.19 6.63 0 7.24l5.46 4.73L3.82 19z"/></svg>
+                          {% endif %}
+                        {% endfor %}
+                      {% endwith %}
+                    </div>
+                    <span class="text-muted small">{{ avg|floatformat:"1" }}/5</span>
+                  {% endwith %}
+                </div>
+                <span class="service-meta">por
+                  {% if service.provider.profile.display_name %}
+                    <strong>{{ service.provider.profile.display_name }}</strong>
+                    <span class="text-muted">(@{{ service.provider.username }})</span>
+                  {% else %}
+                    <strong>@{{ service.provider.username }}</strong>
+                  {% endif %}
+                </span>
+                {% with loc=service.provider.profile.location %}
+                  {% if loc %}
+                    <span class="service-meta">📍 {{ loc }}</span>
+                  {% endif %}
+                {% endwith %}
+                <span class="service-meta">⏱️ {{ service.created_at|date:"d/m/Y H:i" }}</span>
+              </div>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+              {% if request.user.is_authenticated %}
+                {% if request.user != service.provider %}
+                  <a href="{% url 'services:request_create' %}?skill={{ service.offered_skill.id }}" class="btn btn-sm btn-primary">Fazer pedido</a>
+                {% else %}
+                  <button class="btn btn-sm btn-secondary" disabled>Seu serviço</button>
+                {% endif %}
+              {% else %}
+                <a href="{% url 'login' %}?next={% url 'services:feed' %}" class="btn btn-sm btn-outline-primary">Entrar para pedir</a>
+              {% endif %}
+              <a class="service-card-toggle text-nowrap" role="button"
+                 data-bs-toggle="collapse" data-bs-target="#svc-{{ service.pk }}"
+                 aria-expanded="false" aria-controls="svc-{{ service.pk }}">Detalhes ▾</a>
+            </div>
+          </div>
+
+          {% if service.description %}
+            <p class="text-muted mt-2 mb-0 truncate-2">{{ service.description }}</p>
+          {% endif %}
+        </div>
+
+        <div class="collapse" id="svc-{{ service.pk }}">
+          <div class="card-body border-top pt-3">
+            <div class="row g-3">
+              <div class="col-12 col-lg-8">
+                <h6 class="mb-2">Descrição</h6>
+                <p class="mb-0">{{ service.description|linebreaksbr }}</p>
+              </div>
+              <div class="col-12 col-lg-4">
+                <h6 class="mb-2">Informações</h6>
+                <ul class="list-unstyled mb-0">
+                  <li><strong>Provedor:</strong> @{{ service.provider.username }}</li>
+                  {% with loc2=service.provider.profile.location %}
+                    {% if loc2 %}<li><strong>Localidade:</strong> {{ loc2 }}</li>{% endif %}
+                  {% endwith %}
+                  {% with avg2=service.avg_rating|default:service.provider.get_average_rating %}
+                    <li class="d-flex align-items-center gap-2"><strong>Média:</strong>
+                      <span class="rating d-inline-flex">
+                        {% with whole2=avg2|floatformat:"0" %}
+                          {% for _ in "12345"|make_list %}
+                            {% if forloop.counter <= whole2|add:0 %}
+                              <svg class="star" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10 15.27L16.18 19l-1.64-7.03L20 7.24l-7.19-.61L10 0 7.19 6.63 0 7.24l5.46 4.73L3.82 19z"/></svg>
+                            {% else %}
+                              <svg class="star empty" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10 15.27L16.18 19l-1.64-7.03L20 7.24l-7.19-.61L10 0 7.19 6.63 0 7.24l5.46 4.73L3.82 19z"/></svg>
+                            {% endif %}
+                          {% endfor %}
+                        {% endwith %}
+                      </span>
+                      <span class="text-muted small">{{ avg2|floatformat:"1" }}/5</span>
+                    </li>
+                  {% endwith %}
+                  <li><strong>Status:</strong> {{ service.get_status_display }}</li>
+                </ul>
+
+                {% if request.user.is_authenticated %}
+                  <form method="post" action="{% url 'services:request_status' service.pk %}" class="mt-2 d-flex flex-wrap gap-2">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                    {% if request.user == service.provider and service.status == 'PENDING' %}
+                      <button name="action" value="accept" class="btn btn-sm btn-success">Aceitar</button>
+                    {% endif %}
+                    {% if request.user == service.provider and service.status == 'ACCEPTED' %}
+                      <button name="action" value="complete" class="btn btn-sm btn-primary">Concluir</button>
+                    {% endif %}
+                    {% if request.user == service.provider or request.user == service.requester %}
+                      {% if service.status == 'PENDING' or service.status == 'ACCEPTED' %}
+                        <button name="action" value="cancel" class="btn btn-sm btn-outline-danger">Cancelar</button>
+                      {% endif %}
+                    {% endif %}
+                  </form>
+                {% endif %}
+              </div>
+            </div>
+
+            <hr>
+            <h6 class="mb-3">Comentários e Avaliações recentes</h6>
+            {% with reviews=service.provider.reviews_received.all|slice:":3" %}
+              {% if reviews %}
+                <div class="vstack gap-3">
+                  {% for r in reviews %}
+                    <div class="d-flex gap-3">
+                      <div class="flex-grow-1">
+                        <div class="d-flex align-items-center gap-2">
+                          <strong>@{{ r.reviewer.username }}</strong>
+                          <span class="rating d-inline-flex">
+                            {% with whole_r=r.rating %}
+                              {% for _ in "12345"|make_list %}
+                                {% if forloop.counter <= whole_r %}
+                                  <svg class="star" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10 15.27L16.18 19l-1.64-7.03L20 7.24l-7.19-.61L10 0 7.19 6.63 0 7.24l5.46 4.73L3.82 19z"/></svg>
+                                {% else %}
+                                  <svg class="star empty" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10 15.27L16.18 19l-1.64-7.03L20 7.24l-7.19-.61L10 0 7.19 6.63 0 7.24l5.46 4.73L3.82 19z"/></svg>
+                                {% endif %}
+                              {% endfor %}
+                            {% endwith %}
+                            <span class="text-muted small ms-2">{{ r.rating }}/5</span>
+                          </span>
+                        </div>
+                        {% if r.comment %}
+                          <div class="text-muted">{{ r.comment }}</div>
+                        {% endif %}
+                        <div class="text-muted small">{{ r.date|date:"d/m/Y H:i" }}</div>
+                      </div>
+                    </div>
+                  {% endfor %}
+                </div>
+              {% else %}
+                <div class="text-muted">Ainda não há avaliações para este provedor.</div>
+              {% endif %}
+            {% endwith %}
+          </div>
+        </div>
+      </div>
+    </div>
+  {% empty %}
+    <div class="col-12 col-xl-10">
+      <div class="alert alert-light border">Nenhum serviço disponível no momento.</div>
+    </div>
+  {% endfor %}
+</div>

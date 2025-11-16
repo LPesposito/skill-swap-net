@@ -1,26 +1,116 @@
-{% load static %}
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>{{ profile_user.username }} — Profile</title>
-</head>
-<body>
-  <h1>{{ profile_user.username }}</h1>
-  <p><strong>Location:</strong> {{ profile.location }}</p>
-  <p><strong>Bio:</strong> {{ profile.bio }}</p>
-  <p><strong>Average rating:</strong> {{ average_rating }}</p>
+{% extends "base.html" %}
 
-  <h2>Offered skills</h2>
-  {% if offered_skills %}
-    <ul>
-      {% for skill in offered_skills %}
-        <li>{{ skill.name }}{% if skill.description %} — {{ skill.description }}{% endif %}</li>
-      {% endfor %}
-    </ul>
-  {% else %}
-    <p>No skills offered yet.</p>
-  {% endif %}
-</body>
-</html>
+{% block title %}Perfil • {{ profile_user.username }}{% endblock %}
+{% block header_title %}Perfil de {{ profile_user.username }}{% endblock %}
+
+{% block extra_head %}
+<style>
+  .avatar {
+    width: 88px; height: 88px; border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: #e9ecef; color: #495057; font-weight: 700; font-size: 1.6rem;
+  }
+  .avatar-img { width: 88px; height: 88px; border-radius: 50%; object-fit: cover; }
+  .rating .star { width: 1rem; height: 1rem; }
+  .rating .star path { fill: #ffd166; stroke: #f0ad4e; }
+  .rating .star.empty path { fill: #e9ecef; stroke: #ced4da; }
+  .skill-badge { background:#f1f3f5; }
+  .muted { color:#6c757d; }
+  .wrap-long { word-break: break-word; }
+  .list-clean { list-style: none; padding-left: 0; }
+  .list-clean li + li { margin-top: .5rem; }
+  .card-section h6 { margin-bottom: .5rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+  <div class="col-12 col-xl-10">
+    <div class="card shadow-sm border-0">
+      <div class="card-body p-4">
+        <div class="d-flex gap-4 align-items-center flex-wrap">
+          {% if profile.photo %}
+            <img class="avatar-img" src="{{ profile.photo.url }}" alt="Foto de perfil de {{ profile.display_name|default:profile_user.username }}">
+          {% else %}
+            <div class="avatar">{% if profile.display_name %}{{ profile.display_name|first|upper }}{% else %}{{ profile_user.username|first|upper }}{% endif %}</div>
+          {% endif %}
+          <div class="flex-grow-1">
+            <div class="d-flex align-items-center gap-3 flex-wrap">
+              {% if profile.display_name %}
+                <h4 class="m-0">{{ profile.display_name }}</h4>
+                <span class="muted">@{{ profile_user.username }}</span>
+              {% else %}
+                <h4 class="m-0">@{{ profile_user.username }}</h4>
+              {% endif %}
+              {% if profile.location %}
+                <span class="muted">📍 {{ profile.location }}</span>
+              {% endif %}
+            </div>
+            <div class="d-flex align-items-center gap-2 mt-2">
+              {% with avg=average_rating %}
+                <span class="rating d-inline-flex">
+                  {% with whole=avg|floatformat:"0" %}
+                    {% for _ in "12345"|make_list %}
+                      {% if forloop.counter <= whole|add:0 %}
+                        <svg class="star" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10 15.27L16.18 19l-1.64-7.03L20 7.24l-7.19-.61L10 0 7.19 6.63 0 7.24l5.46 4.73L3.82 19z"/></svg>
+                      {% else %}
+                        <svg class="star empty" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10 15.27L16.18 19l-1.64-7.03L20 7.24l-7.19-.61L10 0 7.19 6.63 0 7.24l5.46 4.73L3.82 19z"/></svg>
+                      {% endif %}
+                    {% endfor %}
+                  {% endwith %}
+                </span>
+                <span class="muted small">{{ avg|floatformat:"1" }}/5</span>
+              {% endwith %}
+            </div>
+          </div>
+          {% if request.user.is_authenticated and request.user.username == profile_user.username %}
+            <a href="{% url 'users:profile_edit' profile_user.username %}" class="btn btn-outline-primary ms-auto">Editar Perfil</a>
+          {% endif %}
+        </div>
+
+        {% if profile.bio %}
+          <p class="mt-3 wrap-long">{{ profile.bio }}</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-xl-6">
+    <div class="card shadow-sm border-0 card-section">
+      <div class="card-body">
+        <h6>Habilidades Oferecidas</h6>
+        {% if offered_skills %}
+          <div class="d-flex flex-wrap gap-2">
+            {% for skill in offered_skills %}
+              <span class="badge rounded-pill text-dark skill-badge">{{ skill.name }}</span>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="muted">Nenhuma habilidade cadastrada ainda.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-xl-6">
+    <div class="card shadow-sm border-0 card-section">
+      <div class="card-body">
+        <h6>Pedidos Recentes</h6>
+        {% if recent_requests %}
+          <ul class="list-clean m-0">
+            {% for r in recent_requests %}
+              <li>
+                <strong>{{ r.offered_skill.name }}</strong>
+                <span class="muted"> com @{{ r.provider.username }}</span>
+                <span class="muted small"> • {{ r.created_at|date:"d/m/Y H:i" }}</span>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <div class="muted">Sem pedidos recentes.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

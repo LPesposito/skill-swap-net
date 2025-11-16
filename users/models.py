@@ -25,6 +25,8 @@ class UserProfile(models.Model):
 	Mantemos minimal: relaciona-se 1:1 com o User e contém campos públicos.
 	"""
 	user = models.OneToOneField(settings.AUTH_USER_MODEL, related_name="profile", on_delete=models.CASCADE)
+	display_name = models.CharField(max_length=150, blank=True)
+	photo = models.ImageField(upload_to="profiles/", blank=True, null=True)
 	bio = models.TextField(blank=True)
 	location = models.CharField(max_length=150, blank=True)
 	created_at = models.DateTimeField(auto_now_add=True)

@@ -6,6 +6,8 @@ app_name = "users"
 urlpatterns = [
     # Profile page by username
     path("profile/<str:username>/", views.user_profile_view, name="user_profile"),
+    # Signup
+    path("signup/", views.signup_view, name="signup"),
 ]
 
 # API routes (DRF)

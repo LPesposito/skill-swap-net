@@ -1,8 +1,11 @@
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth import get_user_model
 from django.urls import reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib import messages
+from django.contrib.auth import authenticate, login
 
 from .models import UserProfile, UserSkill
 
@@ -11,8 +14,21 @@ def user_profile_view(request, username: str):
 	"""Renderiza o perfil público de um usuário (mesmo comportamento anterior)."""
 	User = get_user_model()
 	user = get_object_or_404(User, username=username)
-	profile = get_object_or_404(UserProfile, user=user)
+	# Garantir que o perfil exista mesmo para contas antigas/criadas fora do fluxo de signup
+	profile, _ = UserProfile.objects.get_or_create(user=user)
 	offered_skills = UserSkill.objects.filter(user=user)
+
+	# Optional: recent requests created by this user (as "requested" skills)
+	try:
+		from services.models import ServiceRequest
+
+		recent_requests = (
+			ServiceRequest.objects.filter(requester=user)
+			.select_related("offered_skill", "provider")
+			.order_by("-created_at")[:5]
+		)
+	except Exception:
+		recent_requests = []
 
 	avg_rating = 0.0
 	if hasattr(user, "get_average_rating"):
@@ -26,9 +42,36 @@ def user_profile_view(request, username: str):
 		"profile": profile,
 		"offered_skills": offered_skills,
 		"average_rating": avg_rating,
+		"recent_requests": recent_requests,
 	}
 
 	return render(request, "users/profile.html", context)
+
+
+def signup_view(request):
+	"""Simple user signup using Django's UserCreationForm."""
+	if request.method == "POST":
+		form = UserCreationForm(request.POST)
+		if form.is_valid():
+			user = form.save()
+			# Ensure a profile exists
+			UserProfile.objects.get_or_create(user=user)
+			# Auto-login and redirect to profile edit
+			username = form.cleaned_data.get("username")
+			raw_password = form.cleaned_data.get("password1")
+			auth_user = authenticate(request, username=username, password=raw_password)
+			if auth_user is not None:
+				login(request, auth_user)
+				return redirect("users:profile_edit", username=auth_user.username)
+			messages.success(request, "Conta criada com sucesso! Faça login para continuar.")
+			return redirect("login")
+	else:
+		form = UserCreationForm()
+
+	return render(request, "registration/register.html", {"form": form})
+
+
+    
 
 
 class UserSkillListView(ListView):
@@ -72,10 +115,14 @@ class UserSkillDeleteView(LoginRequiredMixin, DeleteView):
 
 class UserProfileUpdateView(LoginRequiredMixin, UpdateView):
 	model = UserProfile
-	fields = ["bio", "location"]
+	fields = ["display_name", "bio", "location"]
 	template_name = "users/profile_edit.html"
-	success_url = reverse_lazy("users:profile_edit")
+	success_url = None
 
 	def get_object(self, queryset=None):
-		# Allow users to edit only their own profile
-		return get_object_or_404(UserProfile, user=self.request.user)
+		# Allow users to edit only their own profile, create if missing
+		obj, _ = UserProfile.objects.get_or_create(user=self.request.user)
+		return obj
+
+	def get_success_url(self):
+		return reverse_lazy("users:profile_edit", kwargs={"username": self.request.user.username})

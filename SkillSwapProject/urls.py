@@ -16,8 +16,20 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import include, path
+from django.shortcuts import redirect
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
+    path("", lambda request: redirect("services:feed"), name="home"),
+    # Gracefully handle default Django profile URL by redirecting to our profile page
+    path(
+        "accounts/profile/",
+        lambda request: redirect("users:user_profile", username=request.user.username)
+        if request.user.is_authenticated
+        else redirect("login"),
+        name="accounts_profile_redirect",
+    ),
     path("admin/", admin.site.urls),
     # Django built-in auth (login, logout, password management)
     path("accounts/", include("django.contrib.auth.urls")),
@@ -25,3 +37,7 @@ urlpatterns = [
     path("users/", include("users.urls")),
     path("services/", include("services.urls")),
 ]
+
+# Serve media files in development
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

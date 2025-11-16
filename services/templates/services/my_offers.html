@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Minhas Ofertas • SkillSwap{% endblock %}
+{% block header_title %}Minhas Ofertas (Pedidos Recebidos){% endblock %}
+
+{% block content %}
+{% if offers %}
+  <div class="vstack gap-3">
+    {% for r in offers %}
+      <div class="card shadow-sm border-0">
+        <div class="card-body">
+          <div class="d-flex align-items-center justify-content-between gap-3">
+            <div class="flex-grow-1">
+              <div class="d-flex align-items-center gap-2 flex-wrap">
+                <strong>{{ r.offered_skill.name }}</strong>
+                <span class="text-muted">por @{{ r.requester.username }}</span>
+                <span class="badge text-bg-secondary">{{ r.get_status_display }}</span>
+                <span class="text-muted small">{{ r.created_at|date:"d/m/Y H:i" }}</span>
+              </div>
+              {% if r.description %}
+                <div class="text-muted mt-2">{{ r.description }}</div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="alert alert-light border">Ainda não há pedidos recebidos.</div>
+{% endif %}
+{% endblock %}

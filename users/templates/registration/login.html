@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Entrar • SkillSwap{% endblock %}
+{% block header_title %}Entrar{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-center">
+  <div class="card shadow-sm border-0" style="max-width: 420px; width: 100%;">
+    <div class="card-body p-4">
+      <h5 class="card-title mb-3 text-center">Bem-vindo ao SkillSwap</h5>
+      <form method="post" action="">
+        {% csrf_token %}
+        {% if next %}
+          <input type="hidden" name="next" value="{{ next }}">
+        {% endif %}
+        {% if form.non_field_errors %}
+          <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+        {% endif %}
+        <div class="mb-3">
+          <label class="form-label" for="id_username">Usuário</label>
+          <input type="text" name="username" autofocus required class="form-control" id="id_username" value="{{ form.username.value|default:'' }}">
+        </div>
+        <div class="mb-3">
+          <label class="form-label" for="id_password">Senha</label>
+          <input type="password" name="password" required class="form-control" id="id_password">
+        </div>
+        <button class="btn btn-primary w-100" type="submit">Entrar</button>
+      </form>
+      <div class="text-center mt-3">
+        <a class="small" href="{% url 'password_reset' %}">Esqueci minha senha</a>
+      </div>
+      <hr>
+      <div class="text-center">
+        <span class="text-muted small">Novo por aqui?</span>
+        <a href="{% url 'users:signup' %}" class="ms-1">Criar conta</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

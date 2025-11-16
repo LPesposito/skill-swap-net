@@ -4,34 +4,71 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}SkillSwap{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    {% block extra_head %}{% endblock %}
     <style>
-      body { font-family: Arial, Helvetica, sans-serif; max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
-      header { border-bottom: 1px solid #ddd; padding-bottom: 0.5rem; margin-bottom: 1rem }
-      nav a { margin-right: 1rem }
+      .sidebar {
+        width: 260px;
+      }
+      .sidebar .nav-link { color: #495057; }
+      .sidebar .nav-link.active { background: #f1f3f5; font-weight: 600; }
+      .app-logo { letter-spacing: 0.5px; }
     </style>
   </head>
-  <body>
-    <header>
-      <h1><a href="/">SkillSwap</a></h1>
-      <nav>
-        <a href="/">Home</a>
-        <a href="/users/skills/">Minhas Habilidades</a>
-        <a href="/admin/">Admin</a>
-        {% if request.user.is_authenticated %}
-          <span>Olá, {{ request.user.username }}</span>
-          <a href="/accounts/logout/">Sair</a>
-        {% else %}
-          <a href="/accounts/login/">Entrar</a>
-        {% endif %}
-      </nav>
-    </header>
+  <body class="bg-light">
+    <div class="d-flex">
+      <!-- Sidebar -->
+      <aside class="sidebar flex-shrink-0 p-3 bg-white border-end min-vh-100">
+        <a href="{% url 'services:feed' %}" class="d-flex align-items-center mb-3 mb-md-4 link-dark text-decoration-none">
+          <span class="fs-4 fw-bold app-logo">SkillSwap</span>
+        </a>
+        <hr>
+        <ul class="nav nav-pills flex-column mb-auto">
+          <li class="nav-item"><a class="nav-link d-flex align-items-center gap-2" href="{% url 'services:feed' %}">🏠 Home (Feed)</a></li>
+          {% if request.user.is_authenticated %}
+          <li><a class="nav-link d-flex align-items-center gap-2" href="{% url 'users:user_profile' request.user.username %}">👤 Meu Perfil</a></li>
+          {% else %}
+          <li><a class="nav-link d-flex align-items-center gap-2" href="/accounts/login/">👤 Meu Perfil</a></li>
+          {% endif %}
+          <li><a class="nav-link d-flex align-items-center gap-2" href="{% url 'services:offers' %}">🧰 Minhas Ofertas</a></li>
+          <li><a class="nav-link d-flex align-items-center gap-2" href="{% url 'services:requests' %}">📥 Meus Pedidos</a></li>
+          <li><a class="nav-link d-flex align-items-center gap-2" href="/communication/chat/">💬 Chat</a></li>
+          {% if request.user.is_authenticated %}
+          <li><a class="nav-link d-flex align-items-center gap-2" href="/accounts/logout/">🚪 Sair</a></li>
+          {% else %}
+          <li><a class="nav-link d-flex align-items-center gap-2" href="/accounts/login/">🔑 Entrar</a></li>
+          <li><a class="nav-link d-flex align-items-center gap-2" href="{% url 'users:signup' %}">🆕 Criar conta</a></li>
+          {% endif %}
+        </ul>
+        <hr>
+        <div class="small text-muted">
+          {% if request.user.is_authenticated %}
+            <div>Conectado como:</div>
+            <strong>{{ request.user.username }}</strong>
+          {% else %}
+            Visitante
+          {% endif %}
+        </div>
+      </aside>
 
-    <main>
-      {% block content %}{% endblock %}
-    </main>
+      <!-- Main Content -->
+      <div class="flex-grow-1">
+        <header class="border-bottom bg-white">
+          <div class="container-fluid py-3">
+            <div class="d-flex align-items-center justify-content-between">
+              <div class="h5 m-0">{% block header_title %}{% endblock %}</div>
+              <div class="text-muted small">&copy; SkillSwap</div>
+            </div>
+          </div>
+        </header>
 
-    <footer style="border-top:1px solid #eee; margin-top:2rem; padding-top:1rem; font-size:0.9rem; color:#666">
-      &copy; SkillSwap - Projeto Integrador
-    </footer>
+        <main class="container-fluid py-4">
+          {% block content %}{% endblock %}
+        </main>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    {% block extra_scripts %}{% endblock %}
   </body>
 </html>
